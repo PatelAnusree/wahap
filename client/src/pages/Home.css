@@ -1,0 +1,143 @@
+body{
+margin:0;
+font-family:Arial;
+}
+
+/* NAVBAR */
+
+.navbar{
+display:flex;
+align-items:center;
+gap:20px;
+padding:12px 30px;
+background:white;
+box-shadow:0px 2px 6px rgba(0,0,0,0.1);
+}
+
+.logo{
+font-size:22px;
+font-weight:bold;
+color:red;
+}
+
+.search{
+flex:1;
+padding:10px;
+border-radius:6px;
+border:1px solid #ddd;
+}
+
+.location{
+font-weight:500;
+cursor:pointer;
+}
+
+.qr{
+padding:8px 12px;
+background:#eee;
+border:none;
+border-radius:6px;
+}
+
+.signin{
+background:red;
+color:white;
+border:none;
+padding:8px 14px;
+border-radius:6px;
+}
+
+/* BANNER */
+
+.banner-section{
+display:flex;
+gap:20px;
+padding:20px;
+overflow-x:auto;
+}
+
+.banner{
+width:800px;
+border-radius:10px;
+}
+
+/* SECTIONS */
+
+.section-title{
+padding-left:20px;
+margin-top:20px;
+}
+
+/* EVENT CARDS */
+
+.cards{
+display:grid;
+grid-template-columns:repeat(auto-fill, minmax(260px,1fr));
+gap:25px;
+padding:20px;
+}
+
+.card{
+width:100%;
+border-radius:10px;
+overflow:hidden;
+box-shadow:0px 2px 6px rgba(0,0,0,0.1);
+cursor:pointer;
+background:white;
+transition:0.2s;
+}
+
+.card:hover{
+transform:scale(1.03);
+}
+
+.card-img{
+width:100%;
+height:150px;
+object-fit:cover;
+}
+
+.card-info{
+padding:10px;
+}
+
+.city{
+color:gray;
+font-size:13px;
+}
+
+/* CATEGORY SECTION */
+
+.category-cards{
+display:flex;
+gap:20px;
+padding:20px;
+overflow-x:auto;
+}
+
+.category-card{
+min-width:260px;
+height:160px;
+border-radius:12px;
+overflow:hidden;
+position:relative;
+cursor:pointer;
+}
+
+.category-img{
+width:100%;
+height:100%;
+object-fit:cover;
+}
+
+.category-title{
+position:absolute;
+bottom:10px;
+left:15px;
+color:white;
+font-size:18px;
+font-weight:bold;
+background:rgba(0,0,0,0.5);
+padding:6px 10px;
+border-radius:6px;
+}

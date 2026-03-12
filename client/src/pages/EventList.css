@@ -1,0 +1,51 @@
+.event-page{
+padding:20px;
+font-family:Arial;
+}
+
+.filters{
+margin-bottom:20px;
+display:flex;
+gap:10px;
+}
+
+.filters select{
+padding:8px;
+border-radius:6px;
+border:1px solid #ddd;
+}
+
+.cards{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+gap:20px;
+}
+
+.card{
+border:1px solid #ddd;
+border-radius:10px;
+overflow:hidden;
+cursor:pointer;
+transition:0.2s;
+background:white;
+}
+
+.card:hover{
+transform:scale(1.05);
+box-shadow:0 4px 10px rgba(0,0,0,0.15);
+}
+
+.card-img{
+width:100%;
+height:150px;
+object-fit:cover;
+}
+
+.card-info{
+padding:10px;
+}
+
+.city{
+color:gray;
+font-size:14px;
+}
