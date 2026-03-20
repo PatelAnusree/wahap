@@ -12,12 +12,17 @@ function SignIn() {
     e.preventDefault();
     setLoading(true);
     
-    // Simulate API Call for dynamic feeling
     setTimeout(() => {
       setLoading(false);
-      // Navigate exactly to what the abstract says - generating a temporary username and pushing to Home.
       localStorage.setItem("wahap_temp_user", `Attendee_${Math.floor(Math.random() * 1000)}`);
-      navigate("/");
+      
+      const pendingMap = sessionStorage.getItem("pendingMapRedirect");
+      if (pendingMap) {
+        sessionStorage.removeItem("pendingMapRedirect");
+        navigate(`/event/${pendingMap}`);
+      } else {
+        navigate("/");
+      }
     }, 1500);
   };
 

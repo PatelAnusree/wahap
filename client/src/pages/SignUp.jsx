@@ -13,11 +13,17 @@ function SignUp() {
     e.preventDefault();
     setLoading(true);
     
-    // Simulate generation of a temporary user profile securely
     setTimeout(() => {
       setLoading(false);
       localStorage.setItem("wahap_temp_user", name || `Attendee_${Math.floor(Math.random() * 1000)}`);
-      navigate("/");
+      
+      const pendingMap = sessionStorage.getItem("pendingMapRedirect");
+      if (pendingMap) {
+        sessionStorage.removeItem("pendingMapRedirect");
+        navigate(`/event/${pendingMap}`);
+      } else {
+        navigate("/");
+      }
     }, 1500);
   };
 

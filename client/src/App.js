@@ -14,28 +14,15 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-
-        {/* HOME PAGE */}
         <Route path="/" element={<Home />} />
-
-        {/* EVENT LIST */}
         <Route path="/events" element={<EventList />} />
-
-        {/* EVENT DETAILS */}
         <Route path="/event/:id" element={<EventDetails />} />
-
-        {/* QR SCANNER */}
         <Route path="/scan-qr" element={<QrScanner />} />
-
-        {/* ADMIN */}
         <Route path="/admin" element={<AdminCreateEvent />} />
         <Route path="/admin/map/:eventId" element={<AdminMapEditor />} />
         <Route path="/admin/banners" element={<ManagerBanners />} />
-
-        {/* AUTH */}
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
-
       </Routes>
     </BrowserRouter>
   );

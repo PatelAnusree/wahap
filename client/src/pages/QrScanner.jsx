@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./QrScanner.css";
 
 function QrScanner() {
@@ -8,10 +8,10 @@ function QrScanner() {
   const canvasRef = useRef(null);
   const detectorRef = useRef(null);
   const intervalRef = useRef(null);
+  const navigate = useNavigate();
 
   const [status, setStatus] = useState("Initializing scanner...");
   const [error, setError] = useState("");
-  const [scanResult, setScanResult] = useState("");
 
   const stopScanner = useCallback(() => {
     if (intervalRef.current) {
@@ -25,10 +25,21 @@ function QrScanner() {
     }
   }, []);
 
+  const handleScanSuccess = useCallback((value) => {
+    stopScanner();
+    const user = localStorage.getItem("wahap_temp_user");
+    
+    if (!user) {
+      sessionStorage.setItem("pendingMapRedirect", value);
+      navigate("/signin");
+    } else {
+      navigate(`/event/${value}`);
+    }
+  }, [navigate, stopScanner]);
+
   const startScanner = useCallback(async () => {
     stopScanner();
     setError("");
-    setScanResult("");
     setStatus("Requesting camera permission...");
 
     try {
@@ -63,9 +74,7 @@ function QrScanner() {
           const foundCodes = await detectorRef.current.detect(canvas);
           if (foundCodes.length > 0) {
             const value = foundCodes[0].rawValue || "QR detected";
-            setScanResult(value);
-            setStatus("QR code detected successfully.");
-            stopScanner();
+            handleScanSuccess(value);
           }
         }, 300);
       } else {
@@ -76,7 +85,7 @@ function QrScanner() {
       setStatus("Scanner unavailable.");
       console.error(scanError);
     }
-  }, [stopScanner]);
+  }, [stopScanner, handleScanSuccess]);
 
   useEffect(() => {
     startScanner();
@@ -103,12 +112,6 @@ function QrScanner() {
 
       <p className="qr-status">{status}</p>
       {error && <p className="qr-error">{error}</p>}
-      {scanResult && (
-        <div className="qr-result">
-          <strong>Scanned value:</strong>
-          <span>{scanResult}</span>
-        </div>
-      )}
 
       <div className="qr-actions">
         <button type="button" onClick={startScanner} className="qr-action-btn">Restart Scanner</button>
