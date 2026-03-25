@@ -1,79 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   FaChevronLeft,
   FaChevronRight,
-  FaMapMarkerAlt,
-  FaQrcode,
-  FaSearch,
-  FaSignInAlt,
-  FaUserAstronaut,
 } from "react-icons/fa";
 import axios from "axios";
 import API_URL from "../config";
 import { EVENT_TYPES, formatTypeLabel, normalizeType } from "../constants/eventTypes";
 import { DEFAULT_HERO_BANNERS, fetchHeroBanners } from "../constants/heroBanners";
-import Footer from "../components/Footer";
 import "./Home.css";
 
-const CITIES = ["All", "Hyderabad", "Mumbai", "Delhi", "Bangalore", "LB Nagar"];
 const HOME_SECTION_PREVIEW_LIMIT = 10;
 
-const normalizeText = (value = "") =>
-  value
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9\s-]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
 
-const scoreEvent = (event, query) => {
-  if (!query) return 1;
-
-  const tokens = query.split(" ").filter(Boolean);
-  const name = normalizeText(event.name || event.title || "");
-  const type = normalizeText(event.type || "");
-  const city = normalizeText(event.city || event.location || "");
-  const address = normalizeText(event.address || "");
-  const about = normalizeText(event.aboutEvent || event.description || "");
-  const language = normalizeText(event.language || "");
-
-  const blendedText = [name, type, city, address, about, language].join(" ");
-  let score = 0;
-
-  if (name === query) score += 250;
-  if (name.startsWith(query)) score += 160;
-  if (name.includes(query)) score += 110;
-  if (type.includes(query)) score += 90;
-  if (blendedText.includes(query)) score += 40;
-
-  let matchedTokenCount = 0;
-  tokens.forEach((token) => {
-    if (name.includes(token)) {
-      score += 55;
-      matchedTokenCount += 1;
-      return;
-    }
-    if (type.includes(token)) {
-      score += 38;
-      matchedTokenCount += 1;
-      return;
-    }
-    if (city.includes(token) || address.includes(token)) {
-      score += 24;
-      matchedTokenCount += 1;
-      return;
-    }
-    if (about.includes(token) || language.includes(token)) {
-      score += 16;
-      matchedTokenCount += 1;
-    }
-  });
-
-  if (tokens.length > 0 && matchedTokenCount === tokens.length) score += 65;
-  return score;
-};
 
 const formatEventDate = (startDate, endDate) => {
   if (!startDate) return "TBA";
@@ -103,28 +42,13 @@ const formatEventDate = (startDate, endDate) => {
 };
 
 function Home() {
-
   const [events, setEvents] = useState([]);
-  const [search, setSearch] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCity, setSelectedCity] = useState("All");
-  const [user, setUser] = useState(null);
   const [rowArrows, setRowArrows] = useState({});
   const [heroBanners, setHeroBanners] = useState(DEFAULT_HERO_BANNERS);
   const rowRefs = useRef({});
   const bannerRef = useRef(null);
   const heroIndexRef = useRef(0);
   const heroTimerRef = useRef(null);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    // Check for our temporary simulated session
-    const activeUser = localStorage.getItem("wahap_temp_user");
-    if (activeUser) {
-      setUser(activeUser);
-    }
-  }, []);
-
   const fetchEvents = async () => {
     try {
       const res = await axios.get(`${API_URL}/api/events`);
@@ -152,13 +76,6 @@ function Home() {
     loadBanners();
   }, []);
 
-  useEffect(() => {
-    const debounce = setTimeout(() => {
-      setSearchTerm(normalizeText(search));
-    }, 220);
-
-    return () => clearTimeout(debounce);
-  }, [search]);
 
   const formatImageUrl = (path) => {
     if (!path) return "";
@@ -168,27 +85,13 @@ function Home() {
 
   const rankedEvents = useMemo(() => {
     return events
-      .filter((event) => {
-        if (selectedCity === "All") return true;
-        const eventCity = normalizeText(event.city || event.location || "");
-        const selected = normalizeText(selectedCity);
-        return eventCity.includes(selected);
-      })
-      .map((event) => ({
-        ...event,
-        searchScore: scoreEvent(event, searchTerm),
-      }))
-      .filter((event) => event.searchScore > 0)
       .sort((a, b) => {
-        if (b.searchScore !== a.searchScore) return b.searchScore - a.searchScore;
-
         const timeA = new Date(a.date || 0).getTime() || 0;
         const timeB = new Date(b.date || 0).getTime() || 0;
         if (timeA !== timeB) return timeA - timeB;
-
         return (a.name || "").localeCompare(b.name || "");
       });
-  }, [events, searchTerm, selectedCity]);
+  }, [events]);
 
   const groupedEvents = useMemo(() => {
     const grouped = rankedEvents.reduce((acc, event) => {
@@ -217,12 +120,9 @@ function Home() {
     (typeKey) => {
       const query = new URLSearchParams();
       query.set("type", typeKey);
-      if (selectedCity !== "All") {
-        query.set("city", selectedCity);
-      }
       return `/events?${query.toString()}`;
     },
-    [selectedCity]
+    []
   );
 
   const updateArrowState = useCallback((typeKey) => {
@@ -336,64 +236,6 @@ function Home() {
   return (
     <div className="home-page">
 
-      {/* NAVBAR */}
-      <div className="navbar">
-
-        <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-          <div className="logo" style={{ cursor: 'pointer' }}>WAHAP</div>
-        </Link>
-
-        <div className="search-wrapper">
-          <div className="location-box">
-            <FaMapMarkerAlt className="loc-icon" />
-            <select 
-              value={selectedCity} 
-              onChange={(e) => setSelectedCity(e.target.value)}
-              className="location-select"
-            >
-              {CITIES.map(city => (
-                <option key={city} value={city}>{city}</option>
-              ))}
-            </select>
-          </div>
-          
-          <div className="search-bar-inner">
-            <FaSearch className="search-icon" />
-            <input
-              className="search"
-              placeholder="Search events by name, type, city, language..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <button className="qr" onClick={() => navigate("/scan-qr")}>
-          <FaQrcode style={{ marginRight: '6px', fontSize: '16px', verticalAlign: 'middle' }} /> 
-          Scan QR
-        </button>
-
-        {user ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600', color: '#1e293b' }}>
-            <FaUserAstronaut style={{ fontSize: '24px', color: '#ff0844' }} />
-            {user}
-            <button 
-              onClick={() => { localStorage.removeItem("wahap_temp_user"); setUser(null); }}
-              style={{ background: 'transparent', border: '1px solid #e2e8f0', padding: '6px 12px', borderRadius: '6px', marginLeft: '10px', cursor: 'pointer', fontSize: '12px' }}
-            >
-              Logout
-            </button>
-          </div>
-        ) : (
-          <Link to="/signin">
-            <button className="signin">
-              <FaSignInAlt style={{ marginRight: '6px', verticalAlign: 'middle' }} />
-              Sign In
-            </button>
-          </Link>
-        )}
-
-      </div>
 
       {/* BANNERS */}
       <div className="banner-section" ref={bannerRef}>
@@ -410,9 +252,7 @@ function Home() {
       <div className="section-meta">
         <h2 className="section-title">Explore by Event Type</h2>
         <p>
-          {searchTerm
-            ? `Showing ${rankedEvents.length} result${rankedEvents.length === 1 ? "" : "s"} for "${search}"`
-            : `Showing ${rankedEvents.length} event${rankedEvents.length === 1 ? "" : "s"} across curated sections`}
+          Showing {rankedEvents.length} event{rankedEvents.length === 1 ? "" : "s"} across curated sections
         </p>
       </div>
 
@@ -484,8 +324,6 @@ function Home() {
           </section>
         ))
       )}
-
-      <Footer />
     </div>
   );
 }

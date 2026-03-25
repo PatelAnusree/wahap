@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import jsQR from "jsqr";
 import { Link, useNavigate } from "react-router-dom";
 import "./QrScanner.css";
 
@@ -36,6 +37,44 @@ function QrScanner() {
       navigate(`/event/${value}`);
     }
   }, [navigate, stopScanner]);
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setError("");
+    setStatus("Processing image...");
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: "dontInvert",
+        });
+        
+        if (code) {
+          handleScanSuccess(code.data);
+        } else {
+          setError("No QR code found in this image. Please try a clearer picture.");
+          setStatus("Scan failed.");
+        }
+      };
+      img.onerror = () => {
+        setError("Error loading image file.");
+        setStatus("Error.");
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
 
   const startScanner = useCallback(async () => {
     stopScanner();
@@ -78,7 +117,29 @@ function QrScanner() {
           }
         }, 300);
       } else {
-        setStatus("Camera is open. Your browser does not support live QR decoding here.");
+        setStatus("Scanner running (jsQR mode). Point your camera at a QR code.");
+        
+        intervalRef.current = setInterval(() => {
+          if (!videoRef.current || !canvasRef.current) return;
+          const video = videoRef.current;
+
+          if (video.readyState !== 4) return;
+
+          const canvas = canvasRef.current;
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: "dontInvert",
+          });
+
+          if (code) {
+            handleScanSuccess(code.data);
+          }
+        }, 300);
       }
     } catch (scanError) {
       setError("Unable to open the camera. Please allow camera permission and try again.");
@@ -107,7 +168,9 @@ function QrScanner() {
       <div className="qr-scanner-shell">
         <video ref={videoRef} className="qr-video" muted playsInline />
         <canvas ref={canvasRef} style={{ display: "none" }} />
-        <div className="qr-scan-frame" />
+        <div className="qr-scan-frame">
+          <div className="qr-scan-line" />
+        </div>
       </div>
 
       <p className="qr-status">{status}</p>
@@ -116,6 +179,15 @@ function QrScanner() {
       <div className="qr-actions">
         <button type="button" onClick={startScanner} className="qr-action-btn">Restart Scanner</button>
         <button type="button" onClick={stopScanner} className="qr-action-btn secondary">Stop Camera</button>
+        <label className="qr-action-btn upload-btn">
+          Upload Image
+          <input 
+            type="file" 
+            accept="image/*" 
+            onChange={handleFileUpload} 
+            style={{ display: "none" }} 
+          />
+        </label>
       </div>
     </div>
   );

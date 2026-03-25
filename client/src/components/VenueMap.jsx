@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { MapContainer, ImageOverlay, SVGOverlay, Marker, Popup, Polyline } from "react-leaflet";
+import React, { useEffect, useState, useCallback } from "react";
+import { MapContainer, ImageOverlay, Marker, Popup, Polyline } from "react-leaflet";
 import L from "leaflet";
 import axios from "axios";
 import API_URL from "../config";
@@ -7,47 +7,48 @@ import "leaflet/dist/leaflet.css";
 import "./VenueMap.css";
 
 const TYPE_CFG = {
-  stall:    { icon: "🛍️", color: "#4fc3f7", label: "Stall" },
-  stage:    { icon: "🎤", color: "#ffd54f", label: "Stage" },
-  restroom: { icon: "🚻", color: "#81c784", label: "Restroom" },
-  food:     { icon: "🍔", color: "#ef9a9a", label: "Food Court" },
-  entry:    { icon: "🚪", color: "#ce93d8", label: "Entry Gate" },
-  exit:     { icon: "🏁", color: "#b0bec5", label: "Exit" },
-  help:     { icon: "🧭", color: "#ffab91", label: "Help Desk" },
+  stall:    { icon: "🛍️", color: "#ffffff", label: "Stall", labelColor: "#E35D50" },
+  stage:    { icon: "🎤", color: "#FFEAA7", label: "Stage", labelColor: "#FDCB6E" },
+  restroom: { icon: "🚻", color: "#55EFC4", label: "Restroom", labelColor: "#00B894" },
+  food:     { icon: "🍔", color: "#FAB1A0", label: "Food Court", labelColor: "#E17055" },
+  entry:    { icon: "🚪", color: "#E056FD", label: "Entry Gate", labelColor: "#BE2EDD" },
+  exit:     { icon: "🏁", color: "#C8D6E5", label: "Exit", labelColor: "#576574" },
+  help:     { icon: "🧭", color: "#FEEAA7", label: "Help Desk", labelColor: "#F39C12" },
 };
-const cfg = (t) => TYPE_CFG[t] || { icon: "📍", color: "#4fc3f7", label: t };
+const cfg = (t) => TYPE_CFG[t] || { icon: "📍", color: "#ffffff", label: t, labelColor: "#E35D50" };
 
 const BG_SVG = (() => {
   const W = 800, H = 800, rw = 32;
   const xs = [0, 200, 400, 600, W];
-  let s = `<rect width="${W}" height="${H}" fill="#0d1117"/>`;
-  // Grid cell outlines (light, subtle) — full 4×4 grid always visible
+  let s = `<rect width="${W}" height="${H}" fill="#E35D50"/>`;
+  
+  // Ground patches
   for (let r = 0; r < xs.length - 1; r++) {
     for (let c = 0; c < xs.length - 1; c++) {
       const bx = xs[c] + rw, by = xs[r] + rw;
       const bw = xs[c+1] - xs[c] - rw*2, bh = xs[r+1] - xs[r] - rw*2;
       if (bw > 0 && bh > 0) {
-        // Faint cell outline — rooms appear on top for occupied cells
-        s += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="#111827" rx="4" stroke="#1e2d4a" stroke-width="1" opacity="0.7"/>`;
+        s += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="#DC5548" rx="12" />`;
       }
     }
   }
-  // Corridor strips
-  xs.forEach(x => s += `<rect x="${x}" y="0" width="${rw}" height="${H}" fill="#090d14"/>`);
-  xs.forEach(y => s += `<rect x="0" y="${y}" width="${W}" height="${rw}" fill="#090d14"/>`);
-  s += `<rect x="${W-rw}" y="0" width="${rw}" height="${H}" fill="#090d14"/>`;
-  s += `<rect x="0" y="${H-rw}" width="${W}" height="${rw}" fill="#090d14"/>`;
-  // Bright grid lines along corridor centers
-  xs.forEach(x => s += `<line x1="${x+rw/2}" y1="0" x2="${x+rw/2}" y2="${H}" stroke="#2a4a8a" stroke-width="1.5" stroke-dasharray="10,6" opacity="0.8"/>`);
-  xs.forEach(y => s += `<line x1="0" y1="${y+rw/2}" x2="${W}" y2="${y+rw/2}" stroke="#2a4a8a" stroke-width="1.5" stroke-dasharray="10,6" opacity="0.8"/>`);
-  // Edge grid lines
-  s += `<line x1="${W-rw/2}" y1="0" x2="${W-rw/2}" y2="${H}" stroke="#2a4a8a" stroke-width="1.5" stroke-dasharray="10,6" opacity="0.8"/>`;
-  s += `<line x1="0" y1="${H-rw/2}" x2="${W}" y2="${H-rw/2}" stroke="#2a4a8a" stroke-width="1.5" stroke-dasharray="10,6" opacity="0.8"/>`;
-  // Stars
+  
+  // Corridors
+  xs.forEach(x => s += `<rect x="${x}" y="0" width="${rw}" height="${H}" fill="#F07164"/>`);
+  xs.forEach(y => s += `<rect x="0" y="${y}" width="${W}" height="${rw}" fill="#F07164"/>`);
+  s += `<rect x="${W-rw}" y="0" width="${rw}" height="${H}" fill="#F07164"/>`;
+  s += `<rect x="0" y="${H-rw}" width="${W}" height="${rw}" fill="#F07164"/>`;
+  
+  // Decorative trees
   const rng = (seed, mx) => (Math.sin(seed * 9.341) * 0.5 + 0.5) * mx;
-  for (let i = 0; i < 60; i++) {
-    const sx = rng(i*7+1,W), sy = rng(i*13+3,H), r2 = (rng(i*3+2,1.2)+0.3).toFixed(1);
-    s += `<circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="${r2}" fill="#ffffff" opacity="${(rng(i*5+4,0.35)+0.05).toFixed(2)}"/>`;
+  for (let i = 0; i < 90; i++) {
+    const sx = rng(i*7+1,W), sy = rng(i*13+3,H);
+    const onPath = xs.some(x => Math.abs(x + rw/2 - sx) < rw/2 + 8) || xs.some(y => Math.abs(y + rw/2 - sy) < rw/2 + 8);
+    if (!onPath) {
+      s += `<ellipse cx="${sx}" cy="${sy+6}" rx="7" ry="3" fill="#B34237" opacity="0.6"/>`;
+      s += `<rect x="${sx-1.5}" y="${sy-4}" width="3" height="10" fill="#7A362F" rx="1"/>`;
+      s += `<path d="M${sx-7},${sy-1} Q${sx},${sy-16} ${sx+7},${sy-1} Z" fill="#CC4B40" />`;
+    }
   }
   return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}">${s}</svg>`);
 })();
@@ -84,21 +85,28 @@ const makeIcon = (stall, visited, active) => {
   const c = cfg(stall.type);
   return L.divIcon({
     className: "",
-    html: `<div class="vm-marker-wrap">
-      <div class="vm-room-pin${active ? " vm-room-active" : ""}" style="--pin-color:${c.color}">
-        <span class="vm-room-emoji">${c.icon}</span>
-        ${active ? '<div class="vm-room-pulse"></div>' : ''}
+    html: `
+      <div class="vm-marker-wrap ${active ? 'vm-active' : ''}">
+        <div class="vm-room-label" style="--label-color:${c.labelColor}">
+          ${stall.name}
+          ${visited ? '<span class="vm-visited-badge">✔</span>' : ""}
+        </div>
+        <div class="vm-iso-building">
+          <div class="vm-iso-roof" style="--bg:${c.color}">
+             <span class="vm-room-emoji">${c.icon}</span>
+          </div>
+          <div class="vm-iso-face-front" style="--bg:${c.color}"></div>
+          <div class="vm-iso-face-side" style="--bg:${c.color}"></div>
+        </div>
       </div>
-      <div class="vm-room-label" style="--label-color:${c.color}">${stall.name}</div>
-      ${visited ? '<div class="vm-visited-badge">✔</div>' : ""}
-    </div>`,
+    `,
     iconSize: [80, 80],
-    iconAnchor: [40, 40],
-    popupAnchor: [0, -50],
+    iconAnchor: [40, 60],
+    popupAnchor: [0, -70],
   });
 };
 
-export default function VenueMap({ eventId }) {
+const VenueMap = ({ eventId, fullView = false }) => {
   const [stalls, setStalls]             = useState([]);
   const [loading, setLoading]           = useState(true);
   const [feedback, setFeedback]         = useState("");
@@ -109,13 +117,52 @@ export default function VenueMap({ eventId }) {
     try { return JSON.parse(localStorage.getItem("vm_visited_" + eventId) || "[]"); }
     catch { return []; }
   });
+  const [isFullView, setIsFullView]     = useState(fullView);
+  const [map, setMap]                   = useState(null);
 
   useEffect(() => {
     if (!eventId) { setLoading(false); return; }
     axios.get(`${API_URL}/api/stalls/${eventId}`)
-      .then(r => { setStalls(r.data); const e = r.data.find(s => s.type === "entry"); if (e) setRouteStart(e); })
+      .then(r => { 
+        setStalls(r.data); 
+        const e = r.data.find(s => s.type === "entry"); 
+        if (e) setRouteStart(e); 
+      })
       .catch(console.error).finally(() => setLoading(false));
   }, [eventId]);
+
+  const handleAutoFit = useCallback(() => {
+    if (map && stalls.length > 0) {
+      const latLngs = stalls.map(s => [100 - s.y, s.x]);
+      const contentBounds = L.latLngBounds(latLngs);
+      if (latLngs.length === 1) {
+        contentBounds.extend([latLngs[0][0] + 5, latLngs[0][1] + 5]);
+        contentBounds.extend([latLngs[0][0] - 5, latLngs[0][1] - 5]);
+      } else {
+        contentBounds.extend(MAP_BOUNDS);
+      }
+      const padding = window.innerWidth < 768 ? [60, 60] : [150, 150];
+      map.flyToBounds(contentBounds, { padding, duration: 1.2 });
+    }
+  }, [map, stalls]);
+
+  useEffect(() => {
+    handleAutoFit();
+  }, [handleAutoFit]);
+
+  useEffect(() => {
+    if (map) {
+      map.on('popupclose', handleAutoFit);
+      return () => { map.off('popupclose', handleAutoFit); };
+    }
+  }, [map, handleAutoFit]);
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => map?.invalidateSize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [map]);
 
   const fetchFeedback = (sid) => axios.get(`${API_URL}/api/visits/feedback/${sid}`).then(r => setFeedbackList(r.data)).catch(console.error);
   const handleSetStart = (stall) => { setRouteStart(stall); alert(`🚩 Start: ${stall.name}`); };
@@ -148,7 +195,7 @@ export default function VenueMap({ eventId }) {
   );
 
   return (
-    <div className="vm-wrapper">
+    <div className={`vm-wrapper ${isFullView ? 'vm-full' : 'vm-inline'}`}>
       <div className="vm-legend">
         <span className="vm-legend-title">🗺️ Venue Map</span>
         {Object.entries(TYPE_CFG).map(([t, c]) => (
@@ -157,7 +204,12 @@ export default function VenueMap({ eventId }) {
             {c.label}
           </div>
         ))}
-        {routeEnd && <button className="vm-clear-route" onClick={() => setRouteEnd(null)}>✖ Clear</button>}
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+          <button className="vm-action-btn" onClick={() => setIsFullView(!isFullView)}>
+            {isFullView ? "Collapse" : "Adjust Height"}
+          </button>
+          {routeEnd && <button className="vm-clear-route" onClick={() => setRouteEnd(null)}>✖ Clear</button>}
+        </div>
       </div>
 
       {stalls.length > 0 && (
@@ -169,59 +221,24 @@ export default function VenueMap({ eventId }) {
         </div>
       )}
 
-      <MapContainer crs={L.CRS.Simple} bounds={MAP_BOUNDS}
-        style={{ height: "560px", width: "100%", background: "#0d1117" }}
-        zoomControl scrollWheelZoom={false}
-        whenReady={({ target }) => setTimeout(() => target.fitBounds(MAP_BOUNDS, { padding: [24,24] }), 80)}>
+      <MapContainer 
+        crs={L.CRS.Simple} 
+        bounds={MAP_BOUNDS}
+        className={`vm-container ${isFullView ? 'vm-full' : ''}`}
+        zoomControl 
+        scrollWheelZoom={false}
+        ref={setMap}>
 
         <ImageOverlay url={BG_SVG} bounds={MAP_BOUNDS} />
 
-        {/* Zone rooms — one full grid-cell per stall, centered on stall coords */}
-        <SVGOverlay bounds={MAP_BOUNDS} attributes={{ style: "overflow:visible;pointer-events:none" }}>
-          {stalls.map(s => {
-            // rw_u = corridor half-width in 100-unit space = 32/800*100/2 = 2
-            // cell size = 200/800*100 = 25; room = cell - 2*corridor = 25-2*4 = 17; half = 8.5
-            const c = cfg(s.type), hw = 8.5, cx = s.x, cy = 100 - s.y;
-            const ca = 2.5; // corner accent length in units
-            return (
-              <g key={`zone-${s._id}`}>
-                {/* Outer glow */}
-                <rect x={cx-hw-1} y={cy-hw-1} width={(hw+1)*2} height={(hw+1)*2}
-                  fill={c.color} fillOpacity="0.04" rx="0.8"/>
-                {/* Main room floor */}
-                <rect x={cx-hw} y={cy-hw} width={hw*2} height={hw*2}
-                  fill="#161b2e" rx="0.6"
-                  stroke={c.color} strokeWidth="0.6" strokeOpacity="0.75"/>
-                {/* Inner dashed border */}
-                <rect x={cx-hw+1.2} y={cy-hw+1.2} width={(hw-1.2)*2} height={(hw-1.2)*2}
-                  fill="none" stroke={c.color} strokeWidth="0.25"
-                  strokeDasharray="1.5,2.5" strokeOpacity="0.4" rx="0.3"/>
-                {/* Color fill layer */}
-                <rect x={cx-hw+1.2} y={cy-hw+1.2} width={(hw-1.2)*2} height={(hw-1.2)*2}
-                  fill={c.color} fillOpacity="0.07" rx="0.3"/>
-                {/* Corner bracket accents — top-left */}
-                <line x1={cx-hw} y1={cy-hw+ca} x2={cx-hw} y2={cy-hw} stroke={c.color} strokeWidth="1.2" strokeOpacity="1"/>
-                <line x1={cx-hw} y1={cy-hw} x2={cx-hw+ca} y2={cy-hw} stroke={c.color} strokeWidth="1.2" strokeOpacity="1"/>
-                {/* top-right */}
-                <line x1={cx+hw-ca} y1={cy-hw} x2={cx+hw} y2={cy-hw} stroke={c.color} strokeWidth="1.2" strokeOpacity="1"/>
-                <line x1={cx+hw} y1={cy-hw} x2={cx+hw} y2={cy-hw+ca} stroke={c.color} strokeWidth="1.2" strokeOpacity="1"/>
-                {/* bottom-left */}
-                <line x1={cx-hw} y1={cy+hw-ca} x2={cx-hw} y2={cy+hw} stroke={c.color} strokeWidth="1.2" strokeOpacity="1"/>
-                <line x1={cx-hw} y1={cy+hw} x2={cx-hw+ca} y2={cy+hw} stroke={c.color} strokeWidth="1.2" strokeOpacity="1"/>
-                {/* bottom-right */}
-                <line x1={cx+hw} y1={cy+hw-ca} x2={cx+hw} y2={cy+hw} stroke={c.color} strokeWidth="1.2" strokeOpacity="1"/>
-                <line x1={cx+hw-ca} y1={cy+hw} x2={cx+hw} y2={cy+hw} stroke={c.color} strokeWidth="1.2" strokeOpacity="1"/>
-              </g>
-            );
-          })}
-        </SVGOverlay>
+        {/* SVG Zone rooms (removed for 3D marker style) */}
 
         {/* Faint background paths to all stalls using native Polyline */}
         {allPaths.filter(r => !r.isActive).map(r => (
           <Polyline key={`fp-${r.id}`} positions={r.pts}
             pathOptions={{
-              color: '#3a5aad', weight: 2, opacity: 0.35,
-              dashArray: '6 10', lineCap: 'round', lineJoin: 'round'
+              color: '#ffffff', weight: 3, opacity: 0.35,
+              dashArray: '4 8', lineCap: 'round', lineJoin: 'round'
             }}
           />
         ))}
@@ -240,15 +257,15 @@ export default function VenueMap({ eventId }) {
             {/* Main solid path */}
             <Polyline positions={pts}
               pathOptions={{
-                color: idx === 1 ? '#ff9100' : '#FFD600',
-                weight: 5, opacity: 0.95,
+                color: '#ffffff',
+                weight: 6, opacity: 0.95,
                 lineCap: 'round', lineJoin: 'round'
               }}
             />
             {/* White moving dashes overlay */}
             <Polyline positions={pts}
               pathOptions={{
-                color: 'white', weight: 2, opacity: 0.7,
+                color: '#333333', weight: 2, opacity: 0.7,
                 dashArray: '4 12', lineCap: 'round', lineJoin: 'round'
               }}
             />
@@ -259,7 +276,7 @@ export default function VenueMap({ eventId }) {
           <Marker key={i} position={[100-s.y, s.x]}
             icon={makeIcon(s, visitedIds.includes(s._id), routeEnd?._id===s._id || routeStart?._id===s._id)}
             eventHandlers={{ click: () => fetchFeedback(s._id) }}>
-            <Popup maxWidth={280} minWidth={250}>
+            <Popup maxWidth={280} minWidth={250} autoPan={true} autoPanPadding={[20, 100]}>
               <div className="vm-popup">
                 <div className="vm-popup-header" style={{ borderBottom: `1px solid ${cfg(s.type).color}33` }}>
                   <span className="vm-popup-emoji">{cfg(s.type).icon}</span>
@@ -297,4 +314,6 @@ export default function VenueMap({ eventId }) {
       </MapContainer>
     </div>
   );
-}
+};
+
+export default VenueMap;

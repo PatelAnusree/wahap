@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+
+.full-map-page {
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    background: #E35D50;
+    font-family: 'Outfit', sans-serif;
+    overflow: hidden;
+}
+
+.full-map-header {
+    background: #ffffff;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.back-map-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f1f5f9;
+    padding: 10px 18px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 14px;
+    color: #475569;
+    transition: all 0.2s ease;
+}
+
+.back-map-btn:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.header-event-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.header-event-info h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+}
+
+.info-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #ff0844;
+    text-transform: uppercase;
+}
+
+.full-map-canvas {
+    flex: 1;
+    position: relative;
+}
+
+/* Override VenueMap.css when in full screen if needed */
+.full-map-canvas .vm-wrapper {
+    height: 100%;
+}
+
+.full-map-canvas .vm-container {
+    height: 100% !important;
+    max-height: none !important;
+}
+
+@media (max-width: 768px) {
+    .full-map-page {
+        height: calc(100vh - 60px);
+    }
+    .full-map-header {
+        padding: 12px 16px;
+    }
+    .header-event-info h2 {
+        font-size: 16px;
+    }
+}

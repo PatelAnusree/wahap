@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import API_URL from "../config";
@@ -8,32 +8,32 @@ import L from "leaflet";
 import "./AdminMapeditor.css";
 import "../components/VenueMap.css";
 
-/* Dark Among Us style — with light grid lines */
 const BG_SVG = (() => {
   const W = 800, H = 800, rw = 32;
   const xs = [0, 200, 400, 600, W];
-  let s = `<rect width="${W}" height="${H}" fill="#0d1117"/>`;
+  let s = `<rect width="${W}" height="${H}" fill="#E35D50"/>`;
   for (let r = 0; r < xs.length - 1; r++) {
     for (let c = 0; c < xs.length - 1; c++) {
       const bx = xs[c] + rw, by = xs[r] + rw;
       const bw = xs[c+1] - xs[c] - rw*2, bh = xs[r+1] - xs[r] - rw*2;
       if (bw > 0 && bh > 0) {
-        s += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="#111827" rx="4" stroke="#1e2d4a" stroke-width="1" opacity="0.7"/>`;
+        s += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="#DC5548" rx="12" />`;
       }
     }
   }
-  xs.forEach(x => s += `<rect x="${x}" y="0" width="${rw}" height="${H}" fill="#090d14"/>`);
-  xs.forEach(y => s += `<rect x="0" y="${y}" width="${W}" height="${rw}" fill="#090d14"/>`);
-  s += `<rect x="${W-rw}" y="0" width="${rw}" height="${H}" fill="#090d14"/>`;
-  s += `<rect x="0" y="${H-rw}" width="${W}" height="${rw}" fill="#090d14"/>`;
-  xs.forEach(x => s += `<line x1="${x+rw/2}" y1="0" x2="${x+rw/2}" y2="${H}" stroke="#2a4a8a" stroke-width="1.5" stroke-dasharray="10,6" opacity="0.8"/>`);
-  xs.forEach(y => s += `<line x1="0" y1="${y+rw/2}" x2="${W}" y2="${y+rw/2}" stroke="#2a4a8a" stroke-width="1.5" stroke-dasharray="10,6" opacity="0.8"/>`);
-  s += `<line x1="${W-rw/2}" y1="0" x2="${W-rw/2}" y2="${H}" stroke="#2a4a8a" stroke-width="1.5" stroke-dasharray="10,6" opacity="0.8"/>`;
-  s += `<line x1="0" y1="${H-rw/2}" x2="${W}" y2="${H-rw/2}" stroke="#2a4a8a" stroke-width="1.5" stroke-dasharray="10,6" opacity="0.8"/>`;
+  xs.forEach(x => s += `<rect x="${x}" y="0" width="${rw}" height="${H}" fill="#F07164"/>`);
+  xs.forEach(y => s += `<rect x="0" y="${y}" width="${W}" height="${rw}" fill="#F07164"/>`);
+  s += `<rect x="${W-rw}" y="0" width="${rw}" height="${H}" fill="#F07164"/>`;
+  s += `<rect x="0" y="${H-rw}" width="${W}" height="${rw}" fill="#F07164"/>`;
   const rng = (seed, mx) => (Math.sin(seed * 9.341) * 0.5 + 0.5) * mx;
-  for (let i = 0; i < 60; i++) {
-    const sx = rng(i*7+1,W), sy = rng(i*13+3,H), r2 = (rng(i*3+2,1.2)+0.3).toFixed(1);
-    s += `<circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="${r2}" fill="#ffffff" opacity="${(rng(i*5+4,0.35)+0.05).toFixed(2)}"/>`;
+  for (let i = 0; i < 90; i++) {
+    const sx = rng(i*7+1,W), sy = rng(i*13+3,H);
+    const onPath = xs.some(x => Math.abs(x + rw/2 - sx) < rw/2 + 8) || xs.some(y => Math.abs(y + rw/2 - sy) < rw/2 + 8);
+    if (!onPath) {
+      s += `<ellipse cx="${sx}" cy="${sy+6}" rx="7" ry="3" fill="#B34237" opacity="0.6"/>`;
+      s += `<rect x="${sx-1.5}" y="${sy-4}" width="3" height="10" fill="#7A362F" rx="1"/>`;
+      s += `<path d="M${sx-7},${sy-1} Q${sx},${sy-16} ${sx+7},${sy-1} Z" fill="#CC4B40" />`;
+    }
   }
   return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}">${s}</svg>`);
 })();
@@ -54,6 +54,8 @@ function MapClickHandler({ setClickPos }) {
   return null;
 }
 
+const mapBounds = [[0, 0], [100, 100]];
+
 function AdminMapEditor() {
   const { eventId } = useParams();
   const [searchParams] = useSearchParams();
@@ -65,8 +67,23 @@ function AdminMapEditor() {
   const [clickPos, setClickPos] = useState(null);
   const [stallName, setStallName] = useState("");
   const [stallType, setStallType] = useState("stall");
+  const [map, setMap]             = useState(null);
 
   // 🧪 DEBUG
+  const handleAutoFit = useCallback(() => {
+    if (map) {
+      map.flyToBounds(mapBounds, { padding: [50, 50], duration: 1.5 });
+    }
+  }, [map]);
+
+  useEffect(() => {
+    handleAutoFit();
+    if (map) {
+      map.on('popupclose', handleAutoFit);
+      return () => { map.off('popupclose', handleAutoFit); };
+    }
+  }, [map, handleAutoFit]);
+
   useEffect(() => {
     const fetchStalls = async () => {
       try {
@@ -79,29 +96,39 @@ function AdminMapEditor() {
     if (eventId) fetchStalls();
   }, [eventId]);
 
+  useEffect(() => {
+    const handleResize = () => map?.invalidateSize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [map]);
+
   const getIcon = (type, name = "") => {
     const c = {
-      stall:   { emoji: "🛍️", color: "#4285f4" },
-      stage:   { emoji: "🎤", color: "#fbbc05" },
-      restroom:{ emoji: "🚻", color: "#34a853" },
-      food:    { emoji: "🍔", color: "#ea4335" },
-      entry:   { emoji: "🚪", color: "#9c27b0" },
-      exit:    { emoji: "🏁", color: "#607d8b" },
-      help:    { emoji: "🧭", color: "#ff5722" },
-      pointer: { emoji: "📍", color: "#ff0844" },
-    }[type] || { emoji: "📍", color: "#ff0844" };
+      stall:   { emoji: "🛍️", color: "#ffffff", labelColor: "#E35D50" },
+      stage:   { emoji: "🎤", color: "#FFEAA7", labelColor: "#FDCB6E" },
+      restroom:{ emoji: "🚻", color: "#55EFC4", labelColor: "#00B894" },
+      food:    { emoji: "🍔", color: "#FAB1A0", labelColor: "#E17055" },
+      entry:   { emoji: "🚪", color: "#E056FD", labelColor: "#BE2EDD" },
+      exit:    { emoji: "🏁", color: "#C8D6E5", labelColor: "#576574" },
+      help:    { emoji: "🧭", color: "#FEEAA7", labelColor: "#F39C12" },
+      pointer: { emoji: "📍", color: "#ffffff", labelColor: "#E35D50" },
+    }[type] || { emoji: "📍", color: "#ffffff", labelColor: "#E35D50" };
     return L.divIcon({
       className: "",
       html: `
         <div class="vm-marker-wrap">
-          <div class="vm-room-pin" style="--pin-color:${c.color}">
-            <span class="vm-room-emoji">${c.emoji}</span>
+          ${name ? `<div class="vm-room-label" style="--label-color:${c.labelColor}">${name}</div>` : ""}
+          <div class="vm-iso-building">
+            <div class="vm-iso-roof" style="--bg:${c.color}">
+               <span class="vm-room-emoji">${c.emoji}</span>
+            </div>
+            <div class="vm-iso-face-front" style="--bg:${c.color}"></div>
+            <div class="vm-iso-face-side" style="--bg:${c.color}"></div>
           </div>
-          ${name ? `<div class="vm-room-label" style="--label-color:${c.color}">${name}</div>` : ""}
         </div>`,
       iconSize: [80, 80],
-      iconAnchor: [40, 40],
-      popupAnchor: [0, -50],
+      iconAnchor: [40, 60],
+      popupAnchor: [0, -70],
     });
   };
 
@@ -147,7 +174,7 @@ function AdminMapEditor() {
 
 
 
-  const mapBounds = [[0, 0], [100, 100]];
+
 
 
 
@@ -165,36 +192,17 @@ function AdminMapEditor() {
           style={{ height: "100%", width: "100%", backgroundColor: "transparent" }}
           bounds={mapBounds}
           maxBounds={[[ -20, -20 ], [ 120, 120 ]]} // Allow some dragging outside but bounce back
+          ref={setMap}
         >
           {/* Beige block-map — always shown */}
           <ImageOverlay url={BG_SVG} bounds={mapBounds} />
 
-          {/* Dynamic Beige Block Zones & Highlight Circles */}
+          {/* Dynamic Selection indicator */}
           <SVGOverlay bounds={mapBounds} attributes={{ style: "overflow:visible;pointer-events:none" }}>
-            {stalls.map((s, i) => {
-              const bx = s.x - 8.5, by = (100 - s.y) - 8.5;
-              const c = { stall: "#4285f4", stage: "#fbbc05", restroom: "#34a853", food: "#ea4335", entry: "#9c27b0", exit: "#607d8b", help: "#ff5722" }[s.type] || "#4285f4";
-              return (
-                <g key={`zone-bg-${i}`}>
-                  <rect x={bx} y={by} width={17} height={17} fill="#e5dece" rx="0.625"/>
-                  <rect x={bx + 1} y={by + 1} width={7} height={7} fill="#d9d2be" rx="0.375" opacity="0.6"/>
-                  <rect x={bx + 9} y={by + 1} width={7} height={7} fill="#d9d2be" rx="0.375" opacity="0.6"/>
-                  <rect x={bx + 1} y={by + 9} width={7} height={7} fill="#d9d2be" rx="0.375" opacity="0.5"/>
-                  <rect x={bx + 9} y={by + 9} width={7} height={7} fill="#d9d2be" rx="0.375" opacity="0.5"/>
-
-                  <circle cx={s.x} cy={100 - s.y} r={6} fill={c} fillOpacity="0.15" stroke={c} strokeWidth="0.6" strokeDasharray="1.5,1.5" />
-                  <circle cx={s.x} cy={100 - s.y} r={2} fill={c} fillOpacity="0.5" />
-                </g>
-              );
-            })}
-            
             {clickPos && (
               <g>
-                <rect x={clickPos.x - 8.5} y={(100 - clickPos.y) - 8.5} width={17} height={17} fill="#e5dece" rx="0.625" opacity="0.8"/>
-                <rect x={clickPos.x - 7.5} y={(100 - clickPos.y) - 7.5} width={7} height={7} fill="#d9d2be" rx="0.375" opacity="0.6"/>
-                <rect x={clickPos.x + 0.5} y={(100 - clickPos.y) - 7.5} width={7} height={7} fill="#d9d2be" rx="0.375" opacity="0.6"/>
-                <rect x={clickPos.x - 7.5} y={(100 - clickPos.y) + 0.5} width={7} height={7} fill="#d9d2be" rx="0.375" opacity="0.5"/>
-                <rect x={clickPos.x + 0.5} y={(100 - clickPos.y) + 0.5} width={7} height={7} fill="#d9d2be" rx="0.375" opacity="0.5"/>
+                <rect x={clickPos.x - 6} y={(100 - clickPos.y) - 6} width={12} height={12} fill="white" fillOpacity="0.4" rx="2" />
+                <rect x={clickPos.x - 8.5} y={(100 - clickPos.y) - 8.5} width={17} height={17} fill="none" stroke="white" strokeWidth="0.8" strokeDasharray="2,2"/>
               </g>
             )}
           </SVGOverlay>
@@ -204,7 +212,7 @@ function AdminMapEditor() {
           {/* 🔴 saved markers */}
           {stalls.map((s, i) => (
             <Marker key={i} position={[100 - s.y, s.x]} icon={getIcon(s.type, s.name)}>
-              <Popup>
+              <Popup autoPan={true} autoPanPadding={[20, 100]}>
                 <strong>{s.name}</strong> <br /> 
                 <span style={{ textTransform: "capitalize" }}>{s.type}</span>
               </Popup>
@@ -214,7 +222,7 @@ function AdminMapEditor() {
           {/* 🟢 temporary click marker */}
           {clickPos && (
             <Marker position={[100 - clickPos.y, clickPos.x]} icon={getIcon("pointer")}>
-              <Popup>New Element Here</Popup>
+              <Popup autoPan={true} autoPanPadding={[20, 100]}>New Element Here</Popup>
             </Marker>
           )}
         </MapContainer>

@@ -166,3 +166,322 @@
 .auth-footer a:hover {
   color: #ff0844;
 }
+
+.google-login-row {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 5px;
+}
+
+.google-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 13px 20px;
+  background: #ffffff;
+  color: #1f2937;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.01em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.google-btn:hover {
+  background: #f0f4ff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.google-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.google-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.google-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.google-btn-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid rgba(30, 30, 30, 0.2);
+  border-top-color: #4285F4;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.google-login-row {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 5px;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin: 10px 0;
+  color: #52525b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.google-button {
+  background: rgba(255, 255, 255, 0.05);
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.google-button:hover {
+  background: rgba(255, 255, 255, 1);
+  color: #0f172a;
+  border-color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.google-button svg {
+  font-size: 18px;
+}
+
+/* ── Google-style Sign-in Modal ── */
+.google-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.google-modal {
+  background: #fff;
+  border-radius: 28px;
+  width: 100%;
+  max-width: 440px;
+  padding: 40px 48px 32px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+  animation: slideUpModal 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #202124;
+  font-family: 'Google Sans', 'Inter', sans-serif;
+}
+
+@keyframes slideUpModal {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.google-modal-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.google-modal-logo {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 16px;
+}
+
+.google-modal-header h3 {
+  font-size: 24px;
+  font-weight: 400;
+  color: #202124;
+  margin: 0 0 6px;
+}
+
+.google-modal-header p {
+  font-size: 15px;
+  color: #5f6368;
+  margin: 0;
+}
+
+.google-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.google-modal-input-wrap {
+  position: relative;
+}
+
+.google-modal-input {
+  width: 100%;
+  border: 1.5px solid #dadce0;
+  border-radius: 4px;
+  padding: 16px 14px 8px;
+  font-size: 16px;
+  color: #202124;
+  background: transparent;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.google-modal-input:focus {
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 1px #1a73e8;
+}
+
+.google-modal-label {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  color: #80868b;
+  font-size: 16px;
+  pointer-events: none;
+  transition: all 0.2s;
+}
+
+.google-modal-input:focus ~ .google-modal-label,
+.google-modal-input:not(:placeholder-shown) ~ .google-modal-label {
+  top: 6px;
+  font-size: 11px;
+  color: #1a73e8;
+  transform: none;
+}
+
+.google-modal-hint {
+  font-size: 12px;
+  color: #5f6368;
+  margin: -8px 0 0;
+  line-height: 1.5;
+}
+
+.google-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.google-modal-cancel {
+  background: transparent;
+  border: none;
+  color: #1a73e8;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-family: inherit;
+  transition: background 0.2s;
+}
+
+.google-modal-cancel:hover {
+  background: #e8f0fe;
+}
+
+.google-modal-next {
+  background: #1a73e8;
+  color: #fff;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 6px rgba(26, 115, 232, 0.3);
+}
+
+.google-modal-next:hover {
+  background: #1558b0;
+  box-shadow: 0 4px 12px rgba(26, 115, 232, 0.4);
+}
+
+.google-modal-next:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Error State */
+.google-modal-input.input-error {
+  border-color: #d93025;
+  box-shadow: 0 0 0 1px #d93025;
+}
+
+.google-modal-input.input-error ~ .google-modal-label {
+  color: #d93025;
+}
+
+.google-modal-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 8px;
+  color: #d93025;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  animation: errorSlide 0.2s ease;
+}
+
+@keyframes errorSlide {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.google-modal-error svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.google-modal-link {
+  color: #1a73e8;
+  text-decoration: none;
+}
+
+.google-modal-link:hover {
+  text-decoration: underline;
+}

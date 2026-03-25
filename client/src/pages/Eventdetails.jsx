@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { FaArrowLeft, FaClock, FaCalendarAlt, FaUsers, FaGlobe, FaMapMarkerAlt, FaTag, FaHourglass, FaQrcode } from "react-icons/fa";
+import { FaArrowLeft, FaClock, FaCalendarAlt, FaUsers, FaGlobe, FaMapMarkerAlt, FaTag, FaHourglass, FaQrcode, FaMap } from "react-icons/fa";
 import { MdLocalOffer } from "react-icons/md";
 import { QRCodeCanvas } from "qrcode.react";
+import VenueMap from "../components/VenueMap";
 import API_URL from "../config";
 import "./Eventdetails.css";
-import Footer from "../components/Footer";
 
 function EventDetails() {
   const { id } = useParams();
@@ -15,6 +15,7 @@ function EventDetails() {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
   const [showQR, setShowQR] = useState(false);
+  const [currentImgIndex, setCurrentImgIndex] = useState(0);
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -30,6 +31,8 @@ function EventDetails() {
     };
     fetchEvent();
   }, [id]);
+
+
 
   const formatImageUrl = (path) => {
     if (!path) return "";
@@ -64,6 +67,19 @@ function EventDetails() {
     return `${startStr} onwards`;
   };
 
+  // 🖼️ Calculate carousel images (at top level to satisfy hooks)
+  const images = event?.eventImages?.length > 0 
+    ? event.eventImages.map(formatImageUrl) 
+    : event ? [formatImageUrl(event.bannerImage || event.eventImage || "")].filter(Boolean) : [];
+
+  useEffect(() => {
+    if (images.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentImgIndex((prev) => (prev + 1) % images.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [images.length]);
+
   if (loading) {
     return (
       <div className="event-details-page">
@@ -85,7 +101,8 @@ function EventDetails() {
     );
   }
 
-  const bannerImg = formatImageUrl(event.bannerImage || event.eventImage || "");
+
+
   const description = event.aboutEvent || "No description available";
   const isLongDescription = description.length > 200;
 
@@ -99,11 +116,43 @@ function EventDetails() {
         <div className="details-left">
           <h1 className="event-name">{event.name}</h1>
 
-          {bannerImg && (
-            <div className="event-banner">
-              <img src={bannerImg} alt={event.name} className="banner-img" />
+          {/* Banner Carousel */}
+          <div className="event-banner-carousel">
+            <div className="carousel-inner" style={{ transform: `translateX(-${currentImgIndex * 100}%)` }}>
+              {images.map((img, index) => (
+                <div key={index} className="carousel-slide">
+                  <img src={img} alt={`${event.name} slide ${index + 1}`} className="carousel-img" />
+                </div>
+              ))}
             </div>
-          )}
+            
+            {images.length > 1 && (
+              <>
+                <button 
+                  className="carousel-control prev" 
+                  onClick={() => setCurrentImgIndex((currentImgIndex - 1 + images.length) % images.length)}
+                >
+                  <FaArrowLeft />
+                </button>
+                <button 
+                  className="carousel-control next" 
+                  onClick={() => setCurrentImgIndex((currentImgIndex + 1) % images.length)}
+                >
+                  <FaArrowLeft style={{ transform: 'rotate(180deg)' }} />
+                </button>
+                
+                <div className="carousel-dots">
+                  {images.map((_, index) => (
+                    <div 
+                      key={index} 
+                      className={`dot ${currentImgIndex === index ? 'active' : ''}`}
+                      onClick={() => setCurrentImgIndex(index)}
+                    ></div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
 
           <div className="event-tags">
             <span className="tag">{event.type || "Event"}</span>
@@ -123,6 +172,27 @@ function EventDetails() {
                 {expanded ? "Read Less" : "Read More"}
               </button>
             )}
+          </div>
+
+          <div className="map-section">
+            <div className="section-header-row">
+              <div className="section-title-wrap">
+                <h3 className="section-title">
+                  <FaMap style={{ marginRight: '8px', color: '#ff0844' }} /> 
+                  Interactive Venue Map
+                </h3>
+                <p className="section-subtitle">Explore the venue, locate stalls, and plan your visit.</p>
+              </div>
+              <button 
+                className="full-view-btn" 
+                onClick={() => navigate(`/event/${id}/map`)}
+              >
+                Go Full Screen
+              </button>
+            </div>
+            <div className="map-container-wrapper">
+              <VenueMap eventId={id} />
+            </div>
           </div>
         </div>
 
@@ -243,8 +313,6 @@ function EventDetails() {
           </div>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 }

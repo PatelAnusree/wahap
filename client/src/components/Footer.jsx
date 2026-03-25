@@ -8,11 +8,17 @@ function Footer() {
       <div className="footer-container">
         <div className="footer-section">
           <div className="footer-logo">WAHAP</div>
+          <p className="footer-tagline">
+            Experience the best events, concerts, and stall maps in one premium platform.
+          </p>
+        </div>
+
+        <div className="footer-section">
+          <h4 className="footer-heading">Quick Links</h4>
           <ul className="footer-links">
             <li><a href="/">Home</a></li>
-            <li><a href="/events">Events</a></li>
-            <li><a href="#about">About</a></li>
-            <li><a href="#contact">Contact</a></li>
+            <li><a href="/events">Browse Events</a></li>
+            <li><a href="/scan-qr">Scan QR Code</a></li>
           </ul>
         </div>
 
@@ -69,6 +75,10 @@ function Footer() {
 
       <div className="footer-bottom">
         <p>&copy; 2026 WAHAP. All rights reserved.</p>
+        <div className="footer-bottom-links">
+          <a href="#privacy">Privacy Policy</a>
+          <a href="#terms">Terms of Service</a>
+        </div>
       </div>
     </footer>
   );
