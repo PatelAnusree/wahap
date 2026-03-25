@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import API_URL from "../config";
 import { EVENT_TYPES } from "../constants/eventTypes";
@@ -10,17 +10,17 @@ function AdminCreateEvent() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    name: "",
-    type: "",
-    city: "",
-    address: "",
-    duration: "",
-    date: "",
-    endDate: "",
+    name: "Wahap Grand Festival 2026",
+    type: "Fest",
+    city: "Hyderabad",
+    address: "HITECH City Mall, Telangana",
+    duration: "6 Hours",
+    date: "2026-12-15",
+    endDate: "2026-12-20",
     ticketType: "Free",
-    ageLimit: "",
-    language: "",
-    aboutEvent: "",
+    ageLimit: "5",
+    language: "English / Hindi",
+    aboutEvent: "Experience the ultimate fusion of music, technology, and culture at the Grand Festival. Join over 5,000 attendees for an immersive journey through interactive stalls and live stage performances.",
   });
 
   const [eventImage, setEventImage] = useState(null);
@@ -37,11 +37,6 @@ function AdminCreateEvent() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!layoutImage || !eventImage) {
-      alert("Please upload both event image and layout map");
-      return;
-    }
 
     setLoading(true);
 
@@ -83,42 +78,45 @@ function AdminCreateEvent() {
           <FaRocket className="header-icon" />
           <h1>Launch New Event</h1>
           <p>Create an immersive experience for your attendees.</p>
+          <div style={{ marginTop: '10px', fontSize: '13px', color: '#64748b', opacity: 0.8 }}>
+            (Fields pre-filled for demo. Leave files blank to use sample map)
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="premium-form">
           <div className="form-grid">
             <div className="form-section">
               <h3><FaGlobe /> Core Identity</h3>
-              <input name="name" placeholder="Event Name" onChange={handleChange} required className="p-input" />
+              <input name="name" value={formData.name} placeholder="Event Name" onChange={handleChange} required className="p-input" />
               <div className="row">
-                <select name="type" onChange={handleChange} className="p-input" required>
+                <select name="type" value={formData.type} onChange={handleChange} className="p-input" required>
                   <option value="">Select Category</option>
                   {EVENT_TYPES.map((typeItem) => (
                     <option key={typeItem.value} value={typeItem.value}>{typeItem.label}</option>
                   ))}
                 </select>
-                <select name="ticketType" onChange={handleChange} className="p-input">
+                <select name="ticketType" value={formData.ticketType} onChange={handleChange} className="p-input">
                   <option value="Free">Free Entry</option>
                   <option value="Paid">Paid Ticket</option>
                 </select>
               </div>
-              <textarea name="aboutEvent" placeholder="Describe the event experience..." onChange={handleChange} rows={4} className="p-input" />
+              <textarea name="aboutEvent" value={formData.aboutEvent} placeholder="Describe the event experience..." onChange={handleChange} rows={4} className="p-input" />
             </div>
 
             <div className="form-section">
               <h3><FaMapMarkerAlt /> Venue & Logistics</h3>
               <div className="row">
-                 <input name="city" placeholder="City" onChange={handleChange} required className="p-input" />
-                 <input name="duration" placeholder="Duration (e.g., 3h)" onChange={handleChange} className="p-input" />
+                 <input name="city" value={formData.city} placeholder="City" onChange={handleChange} required className="p-input" />
+                 <input name="duration" value={formData.duration} placeholder="Duration (e.g., 3h)" onChange={handleChange} className="p-input" />
               </div>
-              <input name="address" placeholder="Full Venue Address" onChange={handleChange} className="p-input" />
+              <input name="address" value={formData.address} placeholder="Full Venue Address" onChange={handleChange} className="p-input" />
               <div className="row">
-                <input type="date" name="date" onChange={handleChange} className="p-input" title="Start Date" />
-                <input type="date" name="endDate" onChange={handleChange} className="p-input" title="End Date" />
+                <input type="date" name="date" value={formData.date} onChange={handleChange} className="p-input" title="Start Date" />
+                <input type="date" name="endDate" value={formData.endDate} onChange={handleChange} className="p-input" title="End Date" />
               </div>
               <div className="row">
-                <input name="ageLimit" placeholder="Age Limit" onChange={handleChange} className="p-input" />
-                <input name="language" placeholder="Main Language" onChange={handleChange} className="p-input" />
+                <input name="ageLimit" value={formData.ageLimit} placeholder="Age Limit" onChange={handleChange} className="p-input" />
+                <input name="language" value={formData.language} placeholder="Main Language" onChange={handleChange} className="p-input" />
               </div>
             </div>
 
@@ -127,17 +125,27 @@ function AdminCreateEvent() {
               <div className="upload-grid">
                 <div className="upload-box">
                   <span className="label">Event Card*</span>
-                  <input type="file" onChange={(e) => setEventImage(e.target.files[0])} required />
+                  <div className="image-preview">
+                    {eventImage ? <img src={URL.createObjectURL(eventImage)} alt="Preview" /> : <img src="https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&q=80&w=300" alt="Sample" style={{ opacity: 0.6 }} />}
+                  </div>
+                  <input type="file" onChange={(e) => setEventImage(e.target.files[0])} />
                 </div>
                 <div className="upload-box">
                   <span className="label">Banner (Slide)</span>
+                  <div className="image-preview">
+                    {bannerImage ? <img src={URL.createObjectURL(bannerImage)} alt="Preview" /> : <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=300" alt="Sample" style={{ opacity: 0.6 }} />}
+                  </div>
                   <input type="file" onChange={(e) => setBannerImage(e.target.files[0])} />
                 </div>
                 <div className="upload-box layout">
                   <span className="label">Venue Layout (Map)*</span>
-                  <input type="file" onChange={(e) => setLayoutImage(e.target.files[0])} required />
+                  <div className="image-preview">
+                    {layoutImage ? <img src={URL.createObjectURL(layoutImage)} alt="Preview" /> : <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=300" alt="Sample" style={{ opacity: 0.6 }} />}
+                  </div>
+                  <input type="file" onChange={(e) => setLayoutImage(e.target.files[0])} />
                 </div>
               </div>
+              <p className="upload-hint">Leave blank to use professional samples for demo</p>
             </div>
           </div>
 

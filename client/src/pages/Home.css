@@ -17,35 +17,101 @@ body {
 }
 
 
-/* BANNER */
-.banner-section {
+/* HERO BANNERS (Carousel Style) */
+.hero-banner-section {
+  padding: 30px 40px 10px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.carousel-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 21 / 8;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 20px 45px rgba(0,0,0,0.12);
+  background: #f1f5f9;
+}
+
+.carousel-track {
   display: flex;
-  gap: 18px;
-  padding: 24px 34px 14px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  height: 100%;
+  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.banner-section::-webkit-scrollbar {
-  display: none; /* Chrome, Safari and Opera */
+.carousel-item {
+  flex: 0 0 100%;
+  height: 100%;
 }
 
-.banner {
-  width: 83vw;
-  max-width: 1100px;
-  height: 320px;
-  border-radius: 20px;
+.hero-img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  scroll-snap-align: center;
-  flex-shrink: 0;
-  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
-  transition: transform 0.4s ease;
 }
 
-.banner:hover {
-  transform: scale(1.01);
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #0f172a;
+  z-index: 10;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.carousel-btn:hover {
+  background: white;
+  color: #ff0844;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-btn.prev { left: 24px; }
+.carousel-btn.next { right: 24px; }
+
+.carousel-pagination {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  z-index: 10;
+}
+
+.nav-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+  padding: 0;
+}
+
+.nav-dot.active {
+  background: white;
+  transform: scale(1.4);
+}
+
+@media (max-width: 768px) {
+  .hero-banner-section { padding: 15px 15px 5px; }
+  .carousel-container { aspect-ratio: 16 / 9; border-radius: 16px; }
+  .carousel-btn { width: 36px; height: 36px; font-size: 14px; }
+  .carousel-btn.prev { left: 12px; }
+  .carousel-btn.next { right: 12px; }
 }
 
 /* SECTIONS */

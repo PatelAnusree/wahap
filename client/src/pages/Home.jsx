@@ -46,9 +46,7 @@ function Home() {
   const [rowArrows, setRowArrows] = useState({});
   const [heroBanners, setHeroBanners] = useState(DEFAULT_HERO_BANNERS);
   const rowRefs = useRef({});
-  const bannerRef = useRef(null);
-  const heroIndexRef = useRef(0);
-  const heroTimerRef = useRef(null);
+  const [heroIndex, setHeroIndex] = useState(0);
   const fetchEvents = async () => {
     try {
       const res = await axios.get(`${API_URL}/api/events`);
@@ -172,82 +170,59 @@ function Home() {
   }, [groupedEvents, updateArrowState]);
 
   useEffect(() => {
-    const bannerEl = bannerRef.current;
-    if (!bannerEl || heroBanners.length <= 1) return;
-
-    const children = Array.from(bannerEl.querySelectorAll(".banner"));
-    if (children.length <= 1) return;
-
-    heroIndexRef.current = 0;
-    bannerEl.scrollTo({ left: 0, behavior: "auto" });
-
-    const moveToIndex = (targetIndex, behavior = "smooth") => {
-      const target = children[targetIndex];
-      if (!target) return;
-      const scrollTo = target.offsetLeft;
-      bannerEl.scrollTo({ left: scrollTo, behavior });
-    };
-
-    const startAuto = () => {
-      if (heroTimerRef.current) window.clearInterval(heroTimerRef.current);
-      heroTimerRef.current = window.setInterval(() => {
-        heroIndexRef.current = (heroIndexRef.current + 1) % children.length;
-        moveToIndex(heroIndexRef.current);
-      }, 2600);
-    };
-
-    const syncIndexFromScroll = () => {
-      const scrollLeft = bannerEl.scrollLeft;
-      let nearest = 0;
-      let minDistance = Number.POSITIVE_INFINITY;
-
-      children.forEach((item, idx) => {
-        const distance = Math.abs(item.offsetLeft - scrollLeft);
-        if (distance < minDistance) {
-          minDistance = distance;
-          nearest = idx;
-        }
-      });
-
-      heroIndexRef.current = nearest;
-    };
-
-    const handleManualIntent = () => {
-      syncIndexFromScroll();
-      startAuto();
-    };
-
-    bannerEl.addEventListener("wheel", handleManualIntent, { passive: true });
-    bannerEl.addEventListener("touchstart", handleManualIntent, { passive: true });
-    bannerEl.addEventListener("mousedown", handleManualIntent);
-    startAuto();
-
-    return () => {
-      bannerEl.removeEventListener("wheel", handleManualIntent);
-      bannerEl.removeEventListener("touchstart", handleManualIntent);
-      bannerEl.removeEventListener("mousedown", handleManualIntent);
-      if (heroTimerRef.current) {
-        window.clearInterval(heroTimerRef.current);
-        heroTimerRef.current = null;
-      }
-    };
-  }, [heroBanners]);
+    if (heroBanners.length <= 1) return;
+    const timer = setInterval(() => {
+      setHeroIndex((prev) => (prev + 1) % heroBanners.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [heroBanners.length]);
 
   return (
     <div className="home-page">
 
 
       {/* BANNERS */}
-      <div className="banner-section" ref={bannerRef}>
-        {heroBanners.map((banner) => (
-          <img
-            key={banner._id || banner.id}
-            src={banner.image}
-            className="banner"
-            alt={banner.alt}
-          />
-        ))}
-      </div>
+      <section className="hero-banner-section">
+        <div className="carousel-container">
+          <div className="carousel-track" style={{ transform: `translateX(-${heroIndex * 100}%)` }}>
+            {heroBanners.map((banner, idx) => (
+              <div key={banner._id || banner.id || idx} className="carousel-item">
+                <img src={banner.image} alt={banner.alt || "Event Banner"} className="hero-img" />
+              </div>
+            ))}
+          </div>
+          
+          {heroBanners.length > 1 && (
+            <>
+              <button 
+                className="carousel-btn prev" 
+                onClick={() => setHeroIndex((heroIndex - 1 + heroBanners.length) % heroBanners.length)}
+                aria-label="Previous Banner"
+              >
+                <FaChevronLeft />
+              </button>
+              <button 
+                className="carousel-btn next" 
+                onClick={() => setHeroIndex((heroIndex + 1) % heroBanners.length)}
+                aria-label="Next Banner"
+              >
+                <FaChevronRight />
+              </button>
+              
+              <div className="carousel-pagination">
+                {heroBanners.map((_, idx) => (
+                  <button 
+                    key={idx} 
+                    className={`nav-dot ${heroIndex === idx ? 'active' : ''}`}
+                    onClick={() => setHeroIndex(idx)}
+                    aria-label={`Go to slide ${idx + 1}`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </section>
 
       <div className="section-meta">
         <h2 className="section-title">Explore by Event Type</h2>

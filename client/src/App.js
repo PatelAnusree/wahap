@@ -6,6 +6,7 @@ import EventDetails from "./pages/Eventdetails";
 import EventMap from "./pages/EventMap";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminCreateEvent from "./pages/Admincreateevent";
+import AdminEditEvent from "./pages/AdminEditEvent";
 import AdminMapEditor from "./pages/AdminMapeditor";
 import QrScanner from "./pages/QrScanner";
 import ManagerBanners from "./pages/ManagerBanners";
@@ -41,6 +42,7 @@ function AppContent() {
         <Route path="/scan-qr" element={<QrScanner />} />
         <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
         <Route path="/admin/create" element={<ProtectedRoute><AdminCreateEvent /></ProtectedRoute>} />
+        <Route path="/admin/edit/:id" element={<ProtectedRoute><AdminEditEvent /></ProtectedRoute>} />
         <Route path="/admin/map/:eventId" element={<ProtectedRoute><AdminMapEditor /></ProtectedRoute>} />
         <Route path="/admin/banners" element={<ProtectedRoute><ManagerBanners /></ProtectedRoute>} />
         <Route path="/signin" element={<SignIn />} />

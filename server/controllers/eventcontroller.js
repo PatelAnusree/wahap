@@ -33,9 +33,9 @@ exports.createEvent = async (req, res) => {
       ageLimit,
       language,
       aboutEvent,
-      eventImage: req.files?.eventImage?.[0]?.path,
-      bannerImage: req.files?.bannerImage?.[0]?.path,
-      layoutImage: req.files?.layoutImage?.[0]?.path,
+      eventImage: req.files?.eventImage?.[0]?.path || "uploads/placeholder_event.jpg",
+      bannerImage: req.files?.bannerImage?.[0]?.path || "uploads/placeholder_banner.jpg",
+      layoutImage: req.files?.layoutImage?.[0]?.path || "uploads/placeholder_layout.jpg",
     });
 
     await newEvent.save();
@@ -60,7 +60,10 @@ exports.getEvents = async (req, res) => {
 
     const filter = {};
 
-    if (city) filter.city = city.trim();
+    if (city && city !== "All" && city !== "All Cities") {
+        filter.city = city.trim();
+    }
+    
     if (type) filter.type = type.toLowerCase().trim();
     if (query) filter.name = { $regex: query.trim(), $options: "i" };
 
@@ -89,6 +92,36 @@ exports.getEventById = async (req, res) => {
 
   } catch (error) {
     console.error("GET EVENT BY ID ERROR:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+// DELETE EVENT
+exports.deleteEvent = async (req, res) => {
+  try {
+    const event = await Event.findByIdAndDelete(req.params.id);
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+    res.json({ message: "Event deleted successfully" });
+  } catch (error) {
+    console.error("DELETE EVENT ERROR:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+// UPDATE EVENT
+exports.updateEvent = async (req, res) => {
+  try {
+    const event = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+    res.json(event);
+  } catch (error) {
+    console.error("UPDATE EVENT ERROR:", error);
     res.status(500).json({ error: error.message });
   }
 };

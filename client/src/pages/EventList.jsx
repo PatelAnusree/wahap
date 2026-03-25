@@ -2,71 +2,46 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import API_URL from "../config";
-import { EVENT_TYPES, normalizeType } from "../constants/eventTypes";
+import { EVENT_TYPES } from "../constants/eventTypes";
 import Footer from "../components/Footer";
 import "./EventList.css";
 
 function EventList() {
 
   const [events, setEvents] = useState([]);
-  const [city, setCity] = useState("");
-  const [type, setType] = useState("");
-  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
   const [params] = useSearchParams();
-  const [initialized, setInitialized] = useState(false);
-
   const navigate = useNavigate();
 
-  // Initialize filters from URL params on mount
+  // Extract filters from URL
+  const city = params.get("city") || "";
+  const type = params.get("type") || "";
+  const search = params.get("query") || "";
+
+  // Fetch events when params change
   useEffect(() => {
-    const selectedType = params.get("type");
-    const selectedCity = params.get("city");
-    const selectedSearch = params.get("query");
-
-    if (selectedType) {
-      setType(normalizeType(selectedType));
-    } else {
-      setType("");
-    }
-
-    if (selectedCity) {
-      setCity(selectedCity);
-    } else {
-      setCity("");
-    }
-
-    if (selectedSearch) {
-      setSearch(selectedSearch);
-    } else {
-      setSearch("");
-    }
-
-    setInitialized(true);
-  }, [params]);
-
-  // Fetch events when filters change (only after initialized)
-  useEffect(() => {
-    if (!initialized) return;
-
     const fetchEvents = async () => {
+      setLoading(true);
       try {
-        const query = new URLSearchParams();
-        if (city) query.set("city", city);
-        if (type) query.set("type", type);
-        if (search) query.set("query", search);
+        const queryParams = new URLSearchParams();
+        if (city && city !== "All") queryParams.set("city", city);
+        if (type) queryParams.set("type", type);
+        if (search) queryParams.set("query", search);
 
         const res = await axios.get(
-          `${API_URL}/api/events${query.toString() ? `?${query.toString()}` : ""}`
+          `${API_URL}/api/events${queryParams.toString() ? `?${queryParams.toString()}` : ""}`
         );
         setEvents(res.data);
       } catch (err) {
         console.error("Failed to fetch events:", err);
         setEvents([]);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchEvents();
-  }, [city, type, search, initialized]);
+  }, [city, type, search]);
 
   const formatDate = (startDate, endDate) => {
     if (!startDate) return "TBA";
@@ -97,6 +72,7 @@ function EventList() {
 
   return (
     <div className="event-page">
+      {loading && <div className="loading-overlay">✨ Discovering nearby events...</div>}
 
       <h2>Explore Events</h2>
       {search && (
@@ -122,10 +98,8 @@ function EventList() {
           value={city} 
           onChange={(e) => {
             const newCity = e.target.value;
-            setCity(newCity);
-            // Update URL params when user manually changes city
             const newParams = new URLSearchParams(params);
-            if (newCity) {
+            if (newCity && newCity !== "All") {
               newParams.set("city", newCity);
             } else {
               newParams.delete("city");
@@ -145,8 +119,6 @@ function EventList() {
           value={type} 
           onChange={(e) => {
             const newType = e.target.value;
-            setType(newType);
-            // Update URL params when user manually changes type
             const newParams = new URLSearchParams(params);
             if (newType) {
               newParams.set("type", newType);

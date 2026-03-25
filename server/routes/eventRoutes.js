@@ -5,7 +5,9 @@ const upload = require("../middleware/upload");
 const {
   createEvent,
   getEvents,
-  getEventById
+  getEventById,
+  deleteEvent,
+  updateEvent
 } = require("../controllers/eventcontroller");
 
 router.post(
@@ -19,6 +21,10 @@ router.post(
 );
 
 router.get("/", getEvents);
+
+router.delete("/:id", deleteEvent);
+
+router.put("/:id", updateEvent);
 
 router.get("/:id", getEventById);
 

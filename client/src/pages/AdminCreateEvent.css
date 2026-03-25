@@ -132,8 +132,36 @@ textarea.p-input {
   display: block;
   font-weight: 800;
   color: #1e293b;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
   font-size: 14px;
+}
+
+.image-preview {
+  width: 100%;
+  height: 120px;
+  background: white;
+  border-radius: 12px;
+  margin-bottom: 15px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e2e8f0;
+}
+
+.image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: all 0.3s ease;
+}
+
+.upload-hint {
+  text-align: center;
+  margin-top: 15px;
+  font-size: 13px;
+  color: #94a3b8;
+  font-weight: 500;
 }
 
 .upload-box input[type="file"] {

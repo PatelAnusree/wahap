@@ -59,14 +59,27 @@ function Navbar() {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (search.trim()) {
-      navigate(`/events?query=${encodeURIComponent(search)}&city=${selectedCity}`);
-      setIsMenuOpen(false);
-    }
+    const queryParams = new URLSearchParams();
+    if (search.trim()) queryParams.set("query", search.trim());
+    if (selectedCity && selectedCity !== "All") queryParams.set("city", selectedCity);
+    
+    navigate(`/events?${queryParams.toString()}`);
+    setIsMenuOpen(false);
   };
 
   const handleCityChange = (e) => {
-    setSelectedCity(e.target.value);
+    const newCity = e.target.value;
+    setSelectedCity(newCity);
+    
+    // Auto-navigate to events list on city change for better UX
+    const searchParams = new URLSearchParams(location.search);
+    if (newCity && newCity !== "All") {
+      searchParams.set("city", newCity);
+    } else {
+      searchParams.delete("city");
+    }
+    
+    navigate(`/events?${searchParams.toString()}`);
   };
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
