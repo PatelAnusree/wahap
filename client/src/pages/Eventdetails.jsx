@@ -172,7 +172,7 @@ function EventDetails() {
               ) : (
                 <div className="qr-signin-prompt">
                   <FaSignInAlt className="icon-small" />
-                  <Link to="/signin">Sign in</Link> for entry QR code
+                  <Link to="/signin">Sign in</Link> to access entry QR code
                 </div>
               )}
             </div>

@@ -22,7 +22,9 @@ function SignIn() {
       sessionStorage.removeItem("pendingMapRedirect");
       navigate(`/event/${pendingMap}`);
     } else {
-      navigate("/");
+      // Redirect to admin dashboard if user is admin
+      const isAdmin = email?.toLowerCase() === "admin@wahap.com" || email?.toLowerCase() === "admin@gmail.com";
+      navigate(isAdmin ? "/admin" : "/");
     }
   };
 
@@ -53,7 +55,7 @@ function SignIn() {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      redirectAfterLogin(extractName(email), email, null);
+      redirectAfterLogin(extractName(email), email.trim().toLowerCase(), null);
     }, 1500);
   };
 
