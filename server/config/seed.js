@@ -22,8 +22,17 @@ function getRandomPosition(used) {
 const seedData = async () => {
   try {
 
-    console.log("Refreshing database...");
+    // Check if events already exist
+    const existingEvents = await Event.countDocuments();
+    
+    if (existingEvents > 0) {
+      console.log("✅ Database already seeded. Preserving existing events.");
+      return;
+    }
 
+    console.log("Seeding database with default events...");
+
+    // Only delete if completely empty (first initialization)
     await Event.deleteMany({});
     await Stall.deleteMany({});
 
