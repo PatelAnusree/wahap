@@ -78,7 +78,43 @@ exports.getEvents = async (req, res) => {
 
     const events = await Event.find(filter).sort({ createdAt: -1 });
 
-    res.json(events);
+    // Filter out expired events - keep only events that haven't ended yet
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    console.log(`🔍 Filtering events. Today's date: ${today.toISOString()}`);
+    
+    const activeEvents = events.filter((event) => {
+      // Keep events without dates
+      if (!event.date && !event.endDate) return true;
+      
+      // Use endDate if available, otherwise use date
+      const eventDateStr = event.endDate || event.date;
+      if (!eventDateStr) return true;
+      
+      try {
+        // Parse the date - handle both YYYY-MM-DD and other formats
+        const eventDate = new Date(eventDateStr);
+        
+        // Check if date is valid
+        if (isNaN(eventDate.getTime())) return true;
+        
+        // Set to end of day for comparison (so event shows on its last day)
+        eventDate.setHours(23, 59, 59, 999);
+        
+        const isActive = eventDate >= today;
+        console.log(`  Event: "${event.name}" | Date: ${eventDateStr} | Parsed: ${eventDate.toISOString()} | Active: ${isActive}`);
+        
+        // Keep if event date is today or in the future
+        return isActive;
+      } catch (err) {
+        console.error(`Error parsing event date: ${eventDateStr}`, err);
+        return true; // Keep event if date parsing fails
+      }
+    });
+
+    console.log(`📊 Total events: ${events.length}, Active events: ${activeEvents.length}`);
+    res.json(activeEvents);
 
   } catch (error) {
     console.error("GET EVENTS ERROR:", error);

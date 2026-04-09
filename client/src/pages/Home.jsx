@@ -27,26 +27,49 @@ const formatEventDate = (startDate, endDate) => {
   const start = new Date(startDate);
   if (Number.isNaN(start.getTime())) return "TBA";
 
-  const startStr = start.toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-
-  if (!endDate) {
-    return `${startStr} onwards`;
+  if (!endDate || startDate === endDate) {
+    // Single day event: "Sat, 11 Apr"
+    return start.toLocaleDateString("en-IN", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
   }
 
   const end = new Date(endDate);
   if (Number.isNaN(end.getTime())) {
-    return `${startStr} onwards`;
+    return start.toLocaleDateString("en-IN", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
   }
 
-  if (startDate === endDate || start.getTime() === end.getTime()) {
-    return startStr;
+  if (start.getTime() === end.getTime()) {
+    // Single day event: "Sat, 11 Apr"
+    return start.toLocaleDateString("en-IN", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
   }
 
-  return `${startStr} onwards`;
+  // Multi-day event
+  const startMonth = start.getMonth();
+  const endMonth = end.getMonth();
+  const startYear = start.getFullYear();
+  const endYear = end.getFullYear();
+
+  if (startMonth === endMonth && startYear === endYear) {
+    // Same month: "10-11 Apr"
+    const monthStr = start.toLocaleDateString("en-IN", { month: "short" });
+    return `${start.getDate()}-${end.getDate()} ${monthStr}`;
+  } else {
+    // Different months: "10 Apr - 13 May"
+    const startStr = start.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+    const endStr = end.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+    return `${startStr} - ${endStr}`;
+  }
 };
 
 function Home() {

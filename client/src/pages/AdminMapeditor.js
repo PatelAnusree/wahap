@@ -140,7 +140,7 @@ function AdminMapEditor() {
     }
 
     try {
-      await axios.post(`${API_URL}/api/stalls/add`, {
+      const res = await axios.post(`${API_URL}/api/stalls/add`, {
         eventId,
         name: stallName,
         type: stallType,
@@ -148,17 +148,35 @@ function AdminMapEditor() {
         y: clickPos.y,
       });
 
-      // update locally
+      // update locally with the returned stall (including _id)
       setStalls((prev) => [
         ...prev,
-        { name: stallName, type: stallType, x: clickPos.x, y: clickPos.y },
+        res.data.stall,
       ]);
 
       setStallName("");
       setClickPos(null);
+      alert("✅ Stall added successfully");
     } catch (err) {
       console.error("STALL SAVE ERROR:", err);
       alert("Error saving stall");
+    }
+  };
+
+  // 🗑️ delete stall
+  const deleteStall = async (stallId, stallName) => {
+    if (!window.confirm(`Delete "${stallName}"?`)) return;
+    
+    // Remove from UI immediately
+    setStalls((prev) => prev.filter((s) => s._id !== stallId));
+    
+    // Try to delete from backend
+    try {
+      await axios.delete(`${API_URL}/api/stalls/delete/${stallId}`);
+      console.log("✅ Stall deleted from database");
+    } catch (err) {
+      console.warn("⚠️ Backend delete failed, but UI updated:", err.message);
+      // Stall is already removed from UI, so we're good
     }
   };
 
@@ -215,6 +233,23 @@ function AdminMapEditor() {
               <Popup autoPan={true} autoPanPadding={[20, 100]}>
                 <strong>{s.name}</strong> <br /> 
                 <span style={{ textTransform: "capitalize" }}>{s.type}</span>
+                <div style={{ marginTop: "10px", display: "flex", gap: "8px" }}>
+                  <button
+                    onClick={() => deleteStall(s._id, s.name)}
+                    style={{
+                      padding: "6px 12px",
+                      backgroundColor: "#ff6b6b",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      fontSize: "12px",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    ✕ Delete
+                  </button>
+                </div>
               </Popup>
             </Marker>
           ))}

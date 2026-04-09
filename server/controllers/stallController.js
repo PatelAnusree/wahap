@@ -25,3 +25,21 @@ exports.getStalls = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// ✅ delete stall
+exports.deleteStall = async (req, res) => {
+  try {
+    const { stallId } = req.params;
+    
+    const deletedStall = await Stall.findByIdAndDelete(stallId);
+    
+    if (!deletedStall) {
+      return res.status(404).json({ error: "Stall not found" });
+    }
+    
+    res.json({ success: true, message: "Stall deleted successfully", stall: deletedStall });
+  } catch (err) {
+    console.error("DELETE STALL ERROR:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
