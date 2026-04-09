@@ -40,6 +40,13 @@ function EventList() {
     };
 
     fetchEvents();
+
+    const handleDataChanged = () => {
+      fetchEvents();
+    };
+
+    window.addEventListener("wahap_data_changed", handleDataChanged);
+    return () => window.removeEventListener("wahap_data_changed", handleDataChanged);
   }, [city, type, search]);
 
   const formatDate = (startDate, endDate) => {

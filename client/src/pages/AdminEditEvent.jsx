@@ -53,6 +53,7 @@ function AdminEditEvent() {
     e.preventDefault();
     try {
       await axios.put(`${API_URL}/api/events/${id}`, eventData);
+      window.dispatchEvent(new Event("wahap_data_changed"));
       alert("✅ Event updated successfully!");
       navigate("/admin");
     } catch (err) {

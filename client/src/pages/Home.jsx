@@ -89,6 +89,13 @@ function Home() {
 
   useEffect(() => {
     fetchEvents();
+
+    const handleDataChanged = () => {
+      fetchEvents();
+    };
+
+    window.addEventListener("wahap_data_changed", handleDataChanged);
+    return () => window.removeEventListener("wahap_data_changed", handleDataChanged);
   }, []);
 
   useEffect(() => {

@@ -56,6 +56,8 @@ function AdminCreateEvent() {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
+      window.dispatchEvent(new Event("wahap_data_changed"));
+
       const eventId = res.data.event._id;
       const layoutPath = res.data.event.layoutImage;
       navigate(`/admin/map/${eventId}?layout=${layoutPath}`);

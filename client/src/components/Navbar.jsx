@@ -7,6 +7,7 @@ import {
   FaSignInAlt,
   FaChevronDown
 } from "react-icons/fa";
+import API_URL from "../config";
 import "./Navbar.css";
 
 const CITIES = ["Hyderabad", "Mumbai", "Delhi", "Bangalore"];
@@ -84,9 +85,7 @@ function Navbar() {
         const lng = pos.coords.longitude;
 
         try {
-          const res = await fetch(
-            `http://localhost:5000/api/location/reverse?lat=${lat}&lng=${lng}`
-          );
+          const res = await fetch(`${API_URL}/api/location/reverse?lat=${lat}&lng=${lng}`);
 
           const data = await res.json();
 

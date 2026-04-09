@@ -32,9 +32,8 @@ IOMP is a comprehensive platform designed to streamline event planning and atten
 
 ### Prerequisites
 *   Node.js (v14+)
-*   MongoDB instance
 
-### Installation
+### Installation (For All Team Members)
 
 1. **Clone the repository**
    ```bash
@@ -45,17 +44,32 @@ IOMP is a comprehensive platform designed to streamline event planning and atten
 2. **Server Setup**
    ```bash
    cd server
-   npm install
-   # Configure your environment variables in a .env file
+   npm install  # This automatically creates .env with the shared Atlas database
    node index.js
    ```
+   
+   Expected output:
+   ```
+   ✅ MongoDB Connected
+   ✅ Database already seeded. Preserving existing events.
+   🚀 Server running on port 5000
+   ```
+   
+   ✅ **That's it!** All team members automatically connect to the same MongoDB Atlas database.
 
-3. **Client Setup**
+3. **Client Setup** (in a separate terminal/tab)
    ```bash
    cd client
    npm install
    npm start
    ```
+
+### Team Data Sync Guarantee
+
+✅ **When you add an event, all collaborators will see it immediately** (just refresh browser)
+✅ **No manual `.env` setup needed** – `npm install` handles it automatically
+✅ **All team members use the same shared Atlas database** – events are persistent and shared
+✅ **No local MongoDB needed** – everything syncs through the cloud database
 
 ## Development Progress
 The project has successfully reached core stability with the implementation of the Venue Map Editor, Admin Event forms, and cohesive styling across all map interfaces. Recent updates focused on refining the map grid alignment and enhancing the premium look of the navigation routes.

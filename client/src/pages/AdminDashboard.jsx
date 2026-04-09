@@ -22,6 +22,13 @@ const AdminDashboard = () => {
       }
     };
     fetchEvents();
+
+    const handleDataChanged = () => {
+      fetchEvents();
+    };
+
+    window.addEventListener("wahap_data_changed", handleDataChanged);
+    return () => window.removeEventListener("wahap_data_changed", handleDataChanged);
   }, []);
 
   const handleDelete = async (id) => {
@@ -29,6 +36,7 @@ const AdminDashboard = () => {
     try {
       await axios.delete(`${API_URL}/api/events/${id}`);
       setEvents(events.filter(e => e._id !== id));
+      window.dispatchEvent(new Event("wahap_data_changed"));
     } catch (err) {
       console.error("Delete Error:", err);
       alert("❌ Selection could not be deleted. Please verify your connection.");
