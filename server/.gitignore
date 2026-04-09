@@ -1,7 +1,9 @@
-# Environment variables - NEVER expose these!
-.env
-.env.local
-.env.*.local
+# Environment variables
+.env                 # Local overrides - never commit
+.env.local           # Local testing - never commit
+.env.*.local         # Local testing - never commit
+.env.production      # Production secrets - never commit
+# ✅ .env.development IS tracked - it's shared by all team members for development
 
 # Dependencies
 node_modules/
