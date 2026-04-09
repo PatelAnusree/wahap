@@ -7,8 +7,10 @@ const path = require("path");
 const devEnvPath = path.join(__dirname, "../.env.development");
 if (fs.existsSync(devEnvPath)) {
   require("dotenv").config({ path: devEnvPath });
+  console.log("📋 Loaded configuration from: .env.development (Team shared database)");
 } else {
   require("dotenv").config();
+  console.log("📋 Loaded configuration from: .env (Local override)");
 }
 
 const connectDB = async () => {
@@ -18,6 +20,10 @@ const connectDB = async () => {
     if (!mongoURI) {
       throw new Error("MONGODB_URI is not set. Make sure .env.development exists or set MONGODB_URI environment variable.");
     }
+
+    // Log first 50 chars of URI (for debugging without exposing credentials)
+    const uriPreview = mongoURI.substring(0, 50) + "...";
+    console.log(`📦 Connecting to: ${uriPreview}`);
 
     await mongoose.connect(mongoURI);
     console.log("✅ MongoDB Connected");

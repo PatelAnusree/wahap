@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
-import { FaArrowLeft, FaClock, FaCalendarAlt, FaUsers, FaGlobe, FaMapMarkerAlt, FaTag, FaQrcode, FaMap, FaSignInAlt } from "react-icons/fa";
+import { FaArrowLeft, FaCalendarAlt, FaUsers, FaGlobe, FaMapMarkerAlt, FaTag, FaQrcode, FaMap, FaSignInAlt } from "react-icons/fa";
 import { MdLocalOffer } from "react-icons/md";
 import { QRCodeCanvas } from "qrcode.react";
 import VenueMap from "../components/VenueMap";

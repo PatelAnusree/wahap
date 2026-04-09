@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import API_URL from "../config";
-import { EVENT_TYPES } from "../constants/eventTypes";
 import "./EventList.css";
 
 function EventList() {

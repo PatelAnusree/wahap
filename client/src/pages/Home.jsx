@@ -9,8 +9,6 @@ import {
   FaBolt,
   FaRegCalendarAlt,
   FaUsers,
-  FaStar,
-  FaArrowRight,
 } from "react-icons/fa";
 import axios from "axios";
 import API_URL from "../config";
